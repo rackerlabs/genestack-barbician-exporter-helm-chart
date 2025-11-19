@@ -1,0 +1,82 @@
+---
+replicaCount: 1
+
+image:
+  repository: ghcr.io/rackerlabs/genestack-images/barbican-exporter
+  tag: "sha-6c19bf7"
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+
+service:
+  type: ClusterIP
+  port: 9100
+  targetPort: metrics
+  name: metrics
+
+# OpenStack Keystone credentials
+# These should be provided via a secret (keystone-keystone-admin)
+openstackCredentials:
+  secretName: keystone-keystone-admin
+  authUrl: OS_AUTH_URL
+  username: OS_USERNAME
+  password: OS_PASSWORD
+  projectName: OS_PROJECT_NAME
+  projectDomainName: OS_PROJECT_DOMAIN_NAME
+  userDomainName: OS_USER_DOMAIN_NAME
+  regionName: OS_REGION_NAME
+  interface: OS_INTERFACE
+
+# Barbican API configuration
+barbican:
+  apiUrl: "http://barbican-api.openstack.svc.cluster.local:9311"
+
+# Additional environment variables
+env: []
+  # - name: CUSTOM_VAR
+  #   value: "custom_value"
+
+resources:
+  limits:
+    cpu: 100m
+    memory: 128Mi
+  requests:
+    cpu: 50m
+    memory: 64Mi
+
+# Liveness and readiness probes
+livenessProbe:
+  httpGet:
+    path: /metrics
+    port: metrics
+  initialDelaySeconds: 15
+  periodSeconds: 20
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+readinessProbe:
+  httpGet:
+    path: /metrics
+    port: metrics
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  timeoutSeconds: 3
+  failureThreshold: 3
+
+serviceMonitor:
+  enabled: true
+  interval: 30s
+  scrapeTimeout: 10s
+  namespace: openstack
+  labels: {}
+
+nodeSelector:
+  openstack-control-plane: enabled
+
+serviceAccount: {}
+podAnnotations: {}
+podLabels: {}
+podSecurityContext: {}
+securityContext: {}
+tolerations: []
+affinity: {}

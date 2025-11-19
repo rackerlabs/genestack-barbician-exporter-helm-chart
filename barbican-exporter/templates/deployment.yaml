@@ -1,0 +1,105 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "barbican-exporter.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "barbican-exporter.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "barbican-exporter.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "barbican-exporter.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.serviceAccount.create }}
+      serviceAccountName: {{ include "barbican-exporter.serviceAccountName" . }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: OS_AUTH_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.openstackCredentials.secretName }}
+                  key: {{ .Values.openstackCredentials.authUrl }}
+            - name: OS_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.openstackCredentials.secretName }}
+                  key: {{ .Values.openstackCredentials.username }}
+            - name: OS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.openstackCredentials.secretName }}
+                  key: {{ .Values.openstackCredentials.password }}
+            - name: OS_PROJECT_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.openstackCredentials.secretName }}
+                  key: {{ .Values.openstackCredentials.projectName }}
+            - name: OS_PROJECT_DOMAIN_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.openstackCredentials.secretName }}
+                  key: {{ .Values.openstackCredentials.projectDomainName }}
+            - name: OS_USER_DOMAIN_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.openstackCredentials.secretName }}
+                  key: {{ .Values.openstackCredentials.userDomainName }}
+            - name: OS_REGION_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.openstackCredentials.secretName }}
+                  key: {{ .Values.openstackCredentials.regionName }}
+            - name: OS_INTERFACE
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.openstackCredentials.secretName }}
+                  key: {{ .Values.openstackCredentials.interface }}
+            - name: BARBICAN_API_URL
+              value: {{ .Values.barbican.apiUrl | quote }}
+            {{- with .Values.env }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          ports:
+            - name: {{ .Values.service.name }}
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+          livenessProbe:
+            {{- toYaml .Values.livenessProbe | nindent 12 }}
+          readinessProbe:
+            {{- toYaml .Values.readinessProbe | nindent 12 }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
