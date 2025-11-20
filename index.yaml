@@ -1,0 +1,25 @@
+apiVersion: v1
+entries:
+  barbican-exporter:
+  - apiVersion: v2
+    appVersion: "1.0"
+    created: "2025-11-20T10:05:21.835395Z"
+    description: A Helm chart for OpenStack Barbican Exporter
+    digest: 09b2cd5077d751d7d23f3e7af4709d42a893ca6a51545852ad68f84bb22e7dcf
+    home: https://github.com/rackerlabs/genestack
+    keywords:
+    - openstack
+    - barbican
+    - prometheus
+    - exporter
+    - monitoring
+    maintainers:
+    - name: Rackspace Technology
+    name: barbican-exporter
+    sources:
+    - https://github.com/rackerlabs/genestack-images
+    type: application
+    urls:
+    - https://rackerlabs.github.io/genestack-barbician-exporter-helm-chart/barbican-exporter-0.1.0.tgz
+    version: 0.1.0
+generated: "2025-11-20T10:05:21.808513607Z"
